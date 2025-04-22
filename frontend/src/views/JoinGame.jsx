@@ -18,10 +18,15 @@ const JoinGame = () => {
 	const { socket } = useSocket();
 	const navigate = useNavigate();
 	const handleJoinRoom = () => {
-		socket.current?.emit("room:join", { username: "Nishant" }, (roomId) => {
-			console.log(roomId);
-			navigate(`/playGame/${roomId}`);
-		});
+		socket.current?.emit(
+			"room:join",
+			{ id: "Player 1", username: "Nishant" },
+			(room) => {
+				console.log(room);
+
+				navigate(`/playGame/${room.id}`);
+			}
+		);
 		socket.current.on("room:error", (error) => {
 			setError(error);
 		});

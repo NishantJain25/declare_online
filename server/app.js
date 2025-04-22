@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
+const { default: Deck } = require("./deck");
 
 const app = express();
 const httpServer = createServer(app);
@@ -28,25 +29,33 @@ app.use(cors(corsOptions));
 
 app.get("/", (req, res) => {
 	res.send("Hello World!");
-});
-
-const onConnection = (socket) => {
-	console.log("Someone connected to the game", { id: socket.id });
-	const rooms = [];
-	socket.on("room:create", (payload, callback) => {
-		console.log("create room", { payload });
-		const room = {
-			id: "room1",
-			players: [],
-			playerCount: 1,
-			inProgress: false,
+				deck: new Deck(),
+				currentRound: 1,
+				nullCard: null,
+				currentPlayer: "player1",
+				scoreTable: [],
+				dealer: "player1",
+				inProgress: false,
+			},
 		};
 		rooms.push(room);
 		callback(room);
 	});
 	socket.on("room:join", (payload, callback) => {
 		console.log("Joining", { payload });
+		const room = rooms.find((room) => room.id === payload.roomId);
+		const player = new Player(payload.player);
+		room.players.push(player);
+		if (room.players.length === 5) room.vacant = false;
+		console.log({ room });
+		io.emit("room:join", room);
 		callback("room1");
+	});
+
+	socket.on("game:begin", (payload, callback) => {
+		const room = rooms.find((room) => room.id === payload.roomId);
+		room.game.inProgress = true;
+		room.game.deck.shuffleDeck();
 	});
 	socket.on("room:leave", (payload) => console.log("leaving", { payload }));
 	socket.on("room:update", (payload) => console.log("update", { payload }));

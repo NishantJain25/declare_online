@@ -13,6 +13,7 @@ import Register from "./views/Register";
 import PlayGame from "./views/PlayGame";
 import JoinGame from "./views/JoinGame";
 import SocketProvider from "./context/socketContext.jsx";
+import { GameStateProvider } from "./context/gameContext";
 
 const router = createBrowserRouter(
 	createRoutesFromElements(
@@ -46,7 +47,9 @@ const router = createBrowserRouter(
 function App({ routes }) {
 	return (
 		<SocketProvider>
-			<RouterProvider router={router} />
+			<GameStateProvider>
+				<RouterProvider router={router} />
+			</GameStateProvider>
 		</SocketProvider>
 	);
 }

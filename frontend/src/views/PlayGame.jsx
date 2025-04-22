@@ -1,7 +1,7 @@
 import { styled } from "styled-components";
 import useSocket from "../hooks/useSocket";
 import { useParams } from "react-router-dom";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Img from "../assets/card-2-spades.png";
 
 const Container = styled.div`
@@ -92,40 +92,53 @@ const NullCard = styled(Deck)`
 `;
 
 const PlayGame = () => {
+	const [players, setPlayers] = useState([]);
 	const [currentPlayer, setCurrentPlayer] = useState("Player 2");
 	const [score, setScore] = useState(25);
+	const [inProgress, setInProgress] = useState(false);
 	const { socket } = useSocket();
 	const { roomId } = useParams();
+	socket.current.on("room:join", (room) => {
+		setPlayers(room.players);
+		if (room.inProgress) setInProgress(true);
+	});
+	const player = useMemo(() => {
+		players.find((player) => player.id === "Player 1");
+	}, []);
+	console.log(player);
 	return (
 		<Container>
 			<TopBar>
 				<button>Quit Match</button>
-				<p>{currentPlayer}'s chance</p>
+				<p>
+					{inProgress ? `${currentPlayer}'s chance` : "Waiting for players..."}
+				</p>
 				<button>View Score Table</button>
 			</TopBar>
 			<GameArea>
 				<OpponentsContainer>
-					{[
-						{ name: "player 2", cards: 4 },
-						{ name: "player 3", cards: 5 },
-					].map(({ name, cards }) => {
-						return (
-							<div>
-								<PlayerInfo>
-									<PlayerImage />
-									<p>{name}</p>
-									<div style={{ display: "flex" }}>
-										{new Array(cards).fill(null).map((_, i) => (
-											<Card
-												opponent={true}
-												key={i}
-											/>
-										))}
-									</div>
-								</PlayerInfo>
-							</div>
-						);
-					})}
+					{players
+						.filter((player) => player.id !== "Player 1")
+						.map(({ name, cards }) => {
+							return (
+								<div>
+									<PlayerInfo>
+										<PlayerImage />
+										<p>{name}</p>
+										{inProgress && (
+											<div style={{ display: "flex" }}>
+												{new Array(cards).fill(null).map((_, i) => (
+													<Card
+														opponent={true}
+														key={i}
+													/>
+												))}
+											</div>
+										)}
+									</PlayerInfo>
+								</div>
+							);
+						})}
 				</OpponentsContainer>
 				<div style={{ position: "relative", flex: 2 }}>
 					<BottomCard />
@@ -148,22 +161,24 @@ const PlayGame = () => {
 							</PlayerInfo>
 							<p>Total: {0}</p>
 						</div>
-						<div style={{ display: "flex", gap: "5px" }}>
-							{["A", "2", "5", "7", "K"].map((_, i) => (
-								<Card key={i}>
-									<img
-										src={Img}
-										alt="2 of spades"
-										style={{
-											objectFit: "cover",
-											height: "100%",
-											width: "100%",
-											scale: 1.15,
-										}}
-									/>
-								</Card>
-							))}
-						</div>
+						{inProgress && (
+							<div style={{ display: "flex", gap: "5px" }}>
+								{["A", "2", "5", "7", "K"].map((_, i) => (
+									<Card key={i}>
+										<img
+											src={Img}
+											alt="2 of spades"
+											style={{
+												objectFit: "cover",
+												height: "100%",
+												width: "100%",
+												scale: 1.15,
+											}}
+										/>
+									</Card>
+								))}
+							</div>
+						)}
 						<div
 							style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
 							{currentPlayer === "Player 1" && (
