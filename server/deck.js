@@ -15,7 +15,7 @@ const CARD_VALUES = [
 ];
 const CARD_SUITS = ["♠", "♦", "♣", "♥"];
 
-export const CARD_VALUE_MAP = {
+const CARD_VALUE_MAP = {
 	A: 1,
 	2: 2,
 	3: 3,
@@ -44,12 +44,11 @@ class Deck {
 		const cards = CARD_VALUES.flatMap((val) => {
 			return CARD_SUITS.map((suit) => val + suit);
 		});
-		console.log({ cards });
 		return cards;
 	}
 
 	shuffleDeck() {
-		for (let i = getLength() - 1; i >= 0; i--) {
+		for (let i = this.length - 1; i >= 0; i--) {
 			const oldCard = this.cards[i];
 			const newIndex = Math.floor(Math.random() * i);
 			const newCard = this.cards[newIndex];
@@ -66,14 +65,18 @@ class Deck {
 		return this.cards.shift();
 	}
 
+	slice(start, end){
+		return this.cards.slice(start, end)
+	}
+
+
 	remove(cardsToRemove) {
-		this.cards.filter(
-			(card) =>
-				!(
-					Array.isArray(cardsToRemove) ? cardsToRemove : [cardsToRemove]
-				).includes(card)
+		const toRemove = Array.isArray(cardsToRemove) ? cardsToRemove : [cardsToRemove]
+		console.log({toRemove})
+		this.cards = this.cards.filter(
+			(card) => !toRemove.includes(card)
 		);
 	}
 }
 
-export default Deck;
+module.exports = {Deck, CARD_VALUE_MAP}

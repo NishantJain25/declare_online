@@ -1,21 +1,37 @@
+const { Deck, CARD_VALUE_MAP } = require("./deck");
+
 class Player {
 	constructor(player) {
 		this.id = player.id;
 		this.name = player.username;
-		this.cardsInHand = new Deck([]);
+		this.cardsInHand = null;
+		this.totalScore = 0
 	}
 
-	playCard(cards) {
+	setCards(cards) {
+		this.cardsInHand = new Deck(cards)
+		
+	}
+
+	playCards(cards,nullCard) {
 		this.cardsInHand.remove(cards);
+		this.updateScore(nullCard)
 	}
 
 	receiveCard(card) {
 		this.cardsInHand.add(card);
 	}
 
-	get totalScore() {
-		return this.cardsInHand.reduce((total, card) => {
-			total = total + CARD_VALUE_MAP[card.slice(0, -1)];
+	updateScore(nullCard) {
+		const score = this.cardsInHand.cards.reduce((total, card) => {
+			return total + (card === nullCard ? 0 : CARD_VALUE_MAP[card.slice(0, -1)]);
 		}, 0);
+
+		this.totalScore = score
+	}
+
+	get score(){
+		return this.totalScore
 	}
 }
+module.exports = {Player}
